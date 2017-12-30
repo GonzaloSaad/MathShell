@@ -18,6 +18,8 @@ public class MathShellApp {
     public static void main(String[] args) {
         // TODO code application logic here
         
+       
+     
        MathShell ms = new MathShell();
        ms.run();
         
