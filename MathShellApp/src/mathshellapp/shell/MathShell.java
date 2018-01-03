@@ -7,7 +7,7 @@ package mathshellapp.shell;
 
 import java.util.Scanner;
 import mathshellapp.shell.Calculator.CalculatorShell;
-import mathshellapp.shell.Functions.FunctionShell;
+import mathshellapp.shell.Function.FunctionShell;
 
 /**
  * Class that will encapsulate all the shell behaviour.

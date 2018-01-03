@@ -5,7 +5,9 @@
  */
 package mathshellapp.shell.Calculator;
 
+import java.util.HashMap;
 import java.util.Scanner;
+import mathshellapp.shell.Functions;
 import net.objecthunter.exp4j.ExpressionBuilder;
 import net.objecthunter.exp4j.Expression;
 import net.objecthunter.exp4j.tokenizer.UnknownFunctionOrVariableException;
@@ -19,7 +21,10 @@ import net.objecthunter.exp4j.tokenizer.UnknownFunctionOrVariableException;
 public class CalculatorShell {
 
     private final String SYM_PROMPT;
+
     private final String CMD_EXIT = "finish";
+    private final String CMD_FUNCTION_LIST = "list";
+    private final String RGX_COMPLEX_COMMAND = "[a-z]+(-[a-z]:[a-z]+)?";
 
     public CalculatorShell(String mainPrompt) {
         SYM_PROMPT = "c" + mainPrompt;
@@ -34,8 +39,6 @@ public class CalculatorShell {
         String input;
         String command;
         String arguments;
-        
-        
 
         while (true) {
             System.out.print(SYM_PROMPT + " ");
@@ -43,9 +46,11 @@ public class CalculatorShell {
 
             if (input.equals(CMD_EXIT)) {
                 break;
+            } else if (input.matches(RGX_COMPLEX_COMMAND)) {
+                operateCommand(input);
+            } else {
+                calculate(input);
             }
-            calculate(input);
-
         }
 
     }
@@ -63,4 +68,46 @@ public class CalculatorShell {
         }
 
     }
+
+    private void operateCommand(String input) {
+        String cmd = input.split("-")[0];
+        boolean args = false;
+        String argument = "";
+
+        if (!(cmd.length() == input.length())) {
+            args = true;
+            argument = input.split("-")[1];
+        }
+
+        switch (cmd) {
+            case CMD_FUNCTION_LIST:
+                listCommand(args, argument);
+                break;
+        }
+
+    }
+
+    private void listCommand(boolean hasArgument, String argument) {
+        if (!hasArgument) {
+            Functions.listFunction();
+            return;
+        }
+        String option = argument.split(":")[0];
+
+        if (option.length() == argument.length()) {
+            System.out.println("No se especificaron argumentos.");
+            return;
+        }
+        String opArg = argument.split(":")[1];
+
+        switch (option) {
+            case "f":
+                Functions.listFunction(opArg);
+                break;
+            default:
+                System.out.println("La opcion '" + option + "' no existe para list.");
+        }
+
+    }
+
 }

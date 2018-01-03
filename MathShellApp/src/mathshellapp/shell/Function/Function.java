@@ -3,7 +3,7 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package mathshellapp.shell.Functions;
+package mathshellapp.shell.Function;
 
 import net.objecthunter.exp4j.Expression;
 import net.objecthunter.exp4j.ExpressionBuilder;
@@ -17,50 +17,61 @@ public class Function {
     
     private String name;
     private String[] arguments;
-    private String expressionString;
+    private final String expressionString;
     private Expression expression;
-    
-    public Function(String function){
+
+    public Function(String function) {
         String header = function.split("=")[0];
-        name = header.substring(0, 1);
-        arguments = header.substring(2, header.length()-1).split(",");
+
+        if (!header.matches("[a-zA-Z][0-9]*\\((([a-z][0-9]*,)*[a-z][0-9]*)\\)")) {
+            throw new IllegalArgumentException("The header of the function is not correct");
+        }
+
+        for (int i = 0; i < header.length(); i++) {
+            if (header.charAt(i) == '(') {
+                name = header.substring(0, i);
+                arguments = header.substring(i + 1, header.length() - 1).split(",");
+                break;
+            }
+        }
+
         expressionString = function.split("=")[1];
-        
+
         this.createExpression();
     }
-        
-       
-    private void createExpression(){
+
+    private void createExpression() {
         ExpressionBuilder builder = new ExpressionBuilder(expressionString);
-        for(String var :arguments){
+        for (String var : arguments) {
             builder.variable(var);
         }
         expression = builder.build();
-        
+
     }
-    
-    public double apply(Double values[]) throws IllegalArgumentException{
-        
+
+    public double apply(double[] values) throws IllegalArgumentException {
+
         int argCount = arguments.length;
         int valCount = values.length;
-        
-        if (valCount != argCount){
-            throw new IllegalArgumentException("La function tiene "+argCount+", se le pasaron "+valCount +".");
+
+        if (valCount != argCount) {
+            throw new IllegalArgumentException("La function tiene " + argCount + ", se le pasaron " + valCount + ".");
         }
-        
-        for (int i = 0; i<argCount;i++){
+
+        for (int i = 0; i < argCount; i++) {
             expression.setVariable(arguments[i], values[i]);
         }
         return expression.evaluate();
-        
+
     }
-    public double apply(String value) throws IllegalArgumentException{
+
+    public double apply(String value) throws IllegalArgumentException {
         String[] values = value.split(",");
         int valCount = values.length;
-        Double[] doublesValues = new Double[valCount];
-        
-        for (int i=0; i<valCount; i++){
-            doublesValues[i]= Double.parseDouble(values[i]);
+        double[] doublesValues = new double[valCount];
+
+        for (int i = 0; i < valCount; i++) {
+            doublesValues[i] = Double.parseDouble(values[i]);
         }
         return this.apply(doublesValues);
     }
@@ -68,6 +79,22 @@ public class Function {
     public String getName() {
         return name;
     }
+
+    public String getExpression() {
+        return this.expressionString;
+    }
     
-    
+    @Override
+    public String toString(){
+        StringBuilder sb = new StringBuilder();
+        sb.append(name)
+                .append("(")
+                .append(String.join(",", arguments))
+                .append(")=")
+                .append(getExpression());
+        return sb.toString();
+        
+    }
+
 }
+

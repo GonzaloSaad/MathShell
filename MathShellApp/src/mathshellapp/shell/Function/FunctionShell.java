@@ -3,11 +3,12 @@
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
  */
-package mathshellapp.shell.Functions;
+package mathshellapp.shell.Function;
 
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Scanner;
+import mathshellapp.shell.Functions;
 
 /**
  *
@@ -16,10 +17,14 @@ import java.util.Scanner;
 public class FunctionShell {
 
     private final String SYM_PROMPT;
-    private final String RGX_FUNCTION_CREATION = "[a-zA-Z]\\(([a-z],)*[a-z]\\)=.+";
+    private final String RGX_FUNCTION_CREATION = "[a-zA-Z][0-9]*\\(([a-z][0-9]*,)*[a-z][0-9]*\\)=.+";
     private final String RGX_FUNCTION_CALL = "[a-zA-Z]\\((\\d+(\\.\\d+)?,)*\\d+(\\.\\d+)?\\)";
-    private Map<String, Function> functions;
+    private final String RGX_COMPOSED_FUNCTION_CALL = "[a-zA-Z][0-9]*\\(([a-zA-Z][0-9]*\\()+((\\d+(\\.\\d+)?,)*\\d+(\\.\\d+)?)+\\)+";
+    private final String RGX_COMPLEX_COMMAND = "[a-z]+(-[a-z]:[a-z]+)?";
     private final String CMD_EXIT = "finish";
+    private final String CMD_FUNCTION_LIST = "list";
+    private final String CMD_USER_FUNCTIONS = "listfun";
+    private Map<String, Function> functions;
 
     public FunctionShell(String mainPrompt) {
         SYM_PROMPT = "f" + mainPrompt;
@@ -43,9 +48,14 @@ public class FunctionShell {
             if (input.matches(RGX_FUNCTION_CREATION)) {
 
                 addFunction(input);
+
             } else if (input.matches(RGX_FUNCTION_CALL)) {
 
                 applyFunction(input);
+            }else if (input.matches(RGX_COMPOSED_FUNCTION_CALL)){
+                //TODO!!!!
+            } else if (input.matches(RGX_COMPLEX_COMMAND)) {
+                operateCommand(input);
             }
 
         } while (!input.equals(CMD_EXIT));
@@ -74,6 +84,55 @@ public class FunctionShell {
             System.out.println(f.apply(arguments));
         } catch (IllegalArgumentException ex) {
             System.out.println(ex.getMessage());
+        }
+
+    }
+
+    private void operateCommand(String input) {
+        String cmd = input.split("-")[0];
+        boolean args = false;
+        String argument = "";
+
+        if (!(cmd.length() == input.length())) {
+            args = true;
+            argument = input.split("-")[1];
+        }
+
+        switch (cmd) {
+            case CMD_FUNCTION_LIST:
+                listCommand(args, argument);
+                break;
+            case CMD_USER_FUNCTIONS:
+                listfunCommand(args,argument);
+                break;
+        }
+    }
+    
+    private void listfunCommand(boolean hasArgument, String argument){
+        for (String function : functions.keySet()) {
+            System.out.println(function + ":\t"+functions.get(function).toString());
+        }
+    }        
+
+    private void listCommand(boolean hasArgument, String argument) {
+        if (!hasArgument) {
+            Functions.listFunction();
+            return;
+        }
+        String option = argument.split(":")[0];
+
+        if (option.length() == argument.length()) {
+            System.out.println("No se especificaron argumentos.");
+            return;
+        }
+        String opArg = argument.split(":")[1];
+
+        switch (option) {
+            case "f":
+                Functions.listFunction(opArg);
+                break;
+            default:
+                System.out.println("La opcion '" + option + "' no existe para list.");
         }
 
     }
