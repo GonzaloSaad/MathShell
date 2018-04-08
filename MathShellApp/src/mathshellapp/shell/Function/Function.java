@@ -5,6 +5,7 @@
  */
 package mathshellapp.shell.Function;
 
+import java.io.Serializable;
 import net.objecthunter.exp4j.Expression;
 import net.objecthunter.exp4j.ExpressionBuilder;
 /**
@@ -19,6 +20,7 @@ public class Function {
     private String[] arguments;
     private final String expressionString;
     private Expression expression;
+    
 
     public Function(String function) {
         String header = function.split("=")[0];
@@ -94,6 +96,10 @@ public class Function {
                 .append(getExpression());
         return sb.toString();
         
+    }
+    
+    public SerializedFunction getSerializedFunction(){
+        return new SerializedFunction(this);
     }
 
 }

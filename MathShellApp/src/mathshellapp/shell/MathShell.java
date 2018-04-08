@@ -39,9 +39,11 @@ public class MathShell {
 
             switch (input) {
                 case CMD_CALCULATOR:
+                    System.out.println("Cambiando a modo calculadora...");
                     runCalculatorShell();
                     break;
                 case CMD_FUNCTION:
+                    System.out.println("Cambiando a modo funciones...");
                     runFunctionShell();
                     break;
             }

@@ -8,6 +8,7 @@ package mathshellapp.shell.Function;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Scanner;
+import mathshellapp.shell.Function.persistance.SerializedFunctionWritter;
 import mathshellapp.shell.Functions;
 
 /**
@@ -18,8 +19,10 @@ public class FunctionShell {
 
     private final String SYM_PROMPT;
     private final String RGX_FUNCTION_CREATION = "[a-zA-Z][0-9]*\\(([a-z][0-9]*,)*[a-z][0-9]*\\)=.+";
-    private final String RGX_FUNCTION_CALL = "[a-zA-Z]\\((\\d+(\\.\\d+)?,)*\\d+(\\.\\d+)?\\)";
+    private final String RGX_FUNCTION_CALL = "[a-zA-Z][0-9]*\\((\\d+(\\.\\d+)?,)*\\d+(\\.\\d+)?\\)";
     private final String RGX_COMPOSED_FUNCTION_CALL = "[a-zA-Z][0-9]*\\(([a-zA-Z][0-9]*\\()+((\\d+(\\.\\d+)?,)*\\d+(\\.\\d+)?)+\\)+";
+    private final String RGX_SAVE_FUNCTION = "save [a-zA-Z][0-9]* as [a-zA-Z0-9]+";
+    private final String RGX_LOAD_FUNCTION = "load [a-zA-Z0-9]+ as [a-zA-Z][0-9]*";
     private final String RGX_COMPLEX_COMMAND = "[a-z]+(-[a-z]:[a-z]+)?";
     private final String CMD_EXIT = "finish";
     private final String CMD_FUNCTION_LIST = "list";
@@ -46,16 +49,19 @@ public class FunctionShell {
             input = sc.nextLine().trim().replace(" ", "");
 
             if (input.matches(RGX_FUNCTION_CREATION)) {
-
                 addFunction(input);
-
             } else if (input.matches(RGX_FUNCTION_CALL)) {
-
                 applyFunction(input);
-            }else if (input.matches(RGX_COMPOSED_FUNCTION_CALL)){
-                //TODO!!!!
-            } else if (input.matches(RGX_COMPLEX_COMMAND)) {
-                operateCommand(input);
+            } else if (input.matches(RGX_COMPOSED_FUNCTION_CALL)) {
+                //TODO!!!!            
+            } else if (input.matches(RGX_SAVE_FUNCTION)) {
+                System.out.println("save");
+                operateSave(input);
+            } else if (input.matches(RGX_LOAD_FUNCTION)) {
+                //operateLoad(input);
+                System.out.println("load");
+            } else{
+                System.out.println("NO");
             }
 
         } while (!input.equals(CMD_EXIT));
@@ -63,15 +69,23 @@ public class FunctionShell {
     }
 
     private void addFunction(String function) {
-        Function f = new Function(function);
-        String name = f.getName();
-        functions.put(name, f);
+        try {
+            Function f = new Function(function);
+            String name = f.getName();
+            functions.put(name, f);
+            System.out.println("La funcion " + name + " fue agregada con exito.");
+        } catch (IllegalArgumentException e){
+            System.out.println("La expresion esta mal escrita.");
+        } catch (Exception e){
+            System.out.println("Hubo un error en agregar la funcion.");
+        }
+
     }
 
     private void applyFunction(String function) {
 
-        String name = function.substring(0, 1);
-        String arguments = function.substring(2, function.length() - 1);
+        String name = function.split("\\(")[0];
+        String arguments = function.substring(name.length() + 1, function.length() - 1);
 
         Function f = functions.get(name);
 
@@ -83,7 +97,7 @@ public class FunctionShell {
         try {
             System.out.println(f.apply(arguments));
         } catch (IllegalArgumentException ex) {
-            System.out.println(ex.getMessage());
+            System.out.println("Error: " + ex.getMessage());
         }
 
     }
@@ -103,16 +117,16 @@ public class FunctionShell {
                 listCommand(args, argument);
                 break;
             case CMD_USER_FUNCTIONS:
-                listfunCommand(args,argument);
+                listfunCommand(args, argument);
                 break;
         }
     }
-    
-    private void listfunCommand(boolean hasArgument, String argument){
+
+    private void listfunCommand(boolean hasArgument, String argument) {
         for (String function : functions.keySet()) {
-            System.out.println(function + ":\t"+functions.get(function).toString());
+            System.out.println(function + ":\t" + functions.get(function).toString());
         }
-    }        
+    }
 
     private void listCommand(boolean hasArgument, String argument) {
         if (!hasArgument) {
@@ -134,6 +148,25 @@ public class FunctionShell {
             default:
                 System.out.println("La opcion '" + option + "' no existe para list.");
         }
+
+    }
+
+    private void operateSave(String input) {
+
+        String auxString = input.split("save")[1];
+
+        String function = auxString.split("as")[0].trim();
+        String fileName = auxString.split("as")[1].trim();
+
+        Function functionToSave = functions.get(function);
+
+        if (functionToSave == null) {
+            System.out.println("La funcion " + function + " no existe.");
+            return;
+        }
+
+        SerializedFunctionWritter fw = new SerializedFunctionWritter();
+        fw.save(fileName, functionToSave);
 
     }
 }
